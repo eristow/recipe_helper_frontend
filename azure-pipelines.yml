@@ -52,16 +52,6 @@ stages:
         go test -v -coverprofile=./coverage/coverage.txt -covermode=atomic ./...
       workingDirectory: '$(System.DefaultWorkingDirectory)/backend'
       displayName: 'Run tests with coverage'
-    - task: Docker@2
-      condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-      inputs:
-        containerRegistry: 'DockerHubConnection'
-        repository: '$(DOCKER_REPOSITORY)/backend'
-        command: 'buildAndPush'
-        Dockerfile: '$(System.DefaultWorkingDirectory)/backend/Dockerfile'
-        tags: |
-          $(Build.BuildId)
-          latest
 
   - job: BuildFrontend
     displayName: 'Build and Test Frontend'
@@ -84,16 +74,6 @@ stages:
         pnpm run test
       workingDirectory: '$(System.DefaultWorkingDirectory)/frontend'
       displayName: 'Run tests'
-    - task: Docker@2
-      condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-      inputs:
-        containerRegistry: 'DockerHubConnection'
-        repository: '$(DOCKER_REPOSITORY)/frontend'
-        command: 'buildAndPush'
-        Dockerfile: '$(System.DefaultWorkingDirectory)/frontend/Dockerfile'
-        tags: |
-          $(Build.BuildId)
-          latest
 
 - stage: DockerBuild
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
@@ -106,12 +86,11 @@ stages:
     - task: Docker@2
       inputs:
         containerRegistry: 'DockerHubConnection'
-        repository: '$(DOCKER_REPOSITORY):recipe_helper_backend'
+        repository: '$(DOCKER_REPOSITORY)'
         command: 'buildAndPush'
         Dockerfile: '$(System.DefaultWorkingDirectory)/backend/Dockerfile'
         tags: |
           recipe_helper_backend
-          $(Build.BuildId)
 
   - job: BuildFrontendDocker
     displayName: 'Build Frontend Docker Image'
@@ -121,12 +100,11 @@ stages:
     - task: Docker@2
       inputs:
         containerRegistry: 'DockerHubConnection'
-        repository: '$(DOCKER_REPOSITORY):recipe_helper_frontend'
+        repository: '$(DOCKER_REPOSITORY)'
         command: 'buildAndPush'
         Dockerfile: '$(System.DefaultWorkingDirectory)/frontend/Dockerfile'
         tags: |
           recipe_helper_frontend
-          $(Build.BuildId)
 
   - job: BuildDatabaseImage
     displayName: 'Build Database Docker Image'
@@ -136,12 +114,11 @@ stages:
     - task: Docker@2
       inputs:
         containerRegistry: 'DockerHubConnection'
-        repository: '$(DOCKER_REPOSITORY):recipe_helper_database'
+        repository: '$(DOCKER_REPOSITORY)'
         command: 'buildAndPush'
-        Dockerfile: '$(System.DefaultWorkingDirectory)/Dockerfile'
+        Dockerfile: '$(System.DefaultWorkingDirectory)/database/Dockerfile'
         tags: |
           recipe_helper_database
-          $(Build.BuildId)
 
   - job: BuildOllamaImage
     displayName: 'Build Ollama Docker Image'
@@ -151,9 +128,8 @@ stages:
     - task: Docker@2
       inputs:
         containerRegistry: 'DockerHubConnection'
-        repository: '$(DOCKER_REPOSITORY):recipe_helper_ollama'
+        repository: '$(DOCKER_REPOSITORY)'
         command: 'buildAndPush'
-        Dockerfile: '$(System.DefaultWorkingDirectory)/Dockerfile'
+        Dockerfile: '$(System.DefaultWorkingDirectory)/ollama/Dockerfile'
         tags: |
           recipe_helper_ollama
-          $(Build.BuildId)
